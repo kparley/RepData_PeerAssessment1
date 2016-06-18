@@ -14,28 +14,25 @@ output:
 
 
 ```{r, echo=TRUE}
-setwd("~/Work/Professional development/Data Science course/Reproducible Research")
+setwd("~/Work/Professional development/Data Science course/Reproducible Research/RepData_PeerAssessment1")
 activity <- read.csv("activity.csv")
 activity$date <- as.Date(activity$date, "%Y-%m-%d")
 ```
 
 
-
-
 **Part B: What is mean total number of steps taken per day?**
 
 
-This calculates total, mean and median number of steps per day, then makes a histogram of total number of steps per day and finally reports mean and median steps per day.
+This calculates total number of steps per day, then makes a histogram of total number of steps per day and finally calculates and reports mean and median steps per day.
 
 
 ```{r, echo=TRUE}
 library(plyr)
-daytotals <- ddply(na.omit(activity),.(date), summarise, sum = sum(steps),mean = mean(steps), median = median(steps))
+daytotals <- ddply(na.omit(activity),.(date), summarise, sum = sum(steps))
 hist(daytotals$sum, main = "Total steps taken each day", xlab = "Total steps", ylab = "Frequency")
-daytotals[,-2]
+mean(daytotals$sum)
+median(daytotals$sum)
 ```
-
-
 
 
 **Part C: What is the average daily activity pattern?**
@@ -50,19 +47,21 @@ plot(intervalmean$interval, intervalmean$mean,type = "l", xlab = "Interval", mai
 ```
 
 
-Find the 5-minute interval, on average across all the days in the dataset, which contains the maximum number of steps
+Find the 5-minute interval, on average across all the days in the dataset, which contains the maximum number of steps.
+
 
 ```{r, echo=TRUE}
 intervalmean[which.max(intervalmean$mean),]
 ```
 
 
+The interval with the maximum number of steps, on average is 835.
 
 
 **Part D: Imputing missing values**
 
 
-calculate and report the total number of missing values in the dataset
+calculate and report the total number of missing values in the dataset.
 
 
 ```{r, echo=TRUE}
@@ -70,7 +69,13 @@ colSums(is.na(activity))
 ```
 
 
-Devise a strategy for filling in all of the missing values in the dataset and create a new dataset that is equal to the original dataset but with the missing data filled in.The strategy used here is to use the mean of the corresponding interval.
+There are 2304 missing values in the data set, all in the steps variable.
+
+
+Devise a strategy for filling in all of the missing values in the dataset and create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+
+The strategy used here is to use the mean of the corresponding interval.
 
 
 ```{r, echo=TRUE}
@@ -83,13 +88,14 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 
 
 ```{r, echo=TRUE}
-daytotals2 <- ddply(activity2, ~ date, summarise, sum = sum(steps),mean = mean(steps), median = median(steps))
+daytotals2 <- ddply(activity2, ~ date, summarise, sum = sum(steps))
 hist(daytotals2$sum, xlab = "Total steps", main = "Total steps taken each day", ylab = "Frequency")
-daytotals2[,-2]
+mean(daytotals2$sum)
+median(daytotals2$sum)
 ```
 
 
-There is an increase in the number of steps around the mean compared to that calculated prior to imputing.
+There is an increase in the number of steps around the mean compared to that calculated prior to imputing and the mean and median are now exactly equal.
 
 
 **Part E: Are there differences in activity patterns between weekdays and weekends?**
