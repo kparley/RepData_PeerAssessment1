@@ -1,25 +1,116 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "PA1_template.Rmd"
+author: "KParley"
+date: "17 June 2016"
 output: 
-  html_document:
-    keep_md: true
+  html_document: 
+    keep_md: yes
 ---
 
-
-## Loading and preprocessing the data
-
+#KParley Reproducible Research Assignment 1
 
 
-## What is mean total number of steps taken per day?
+**Part A; Loading and processing the data**
 
 
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
+```{r, echo=TRUE}
+setwd("~/Work/Professional development/Data Science course/Reproducible Research")
+activity <- read.csv("activity.csv")
+activity$date <- as.Date(activity$date, "%Y-%m-%d")
+```
 
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+
+**Part B: What is mean total number of steps taken per day?**
+
+
+This calculates total, mean and median number of steps per day, then makes a histogram of total number of steps per day and finally reports mean and median steps per day.
+
+
+```{r, echo=TRUE}
+library(plyr)
+daytotals <- ddply(na.omit(activity),.(date), summarise, sum = sum(steps),mean = mean(steps), median = median(steps))
+hist(daytotals$sum, main = "Total steps taken each day", xlab = "Total steps", ylab = "Frequency")
+daytotals[,-2]
+```
+
+
+
+
+**Part C: What is the average daily activity pattern?**
+
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+
+```{r, echo=TRUE}
+intervalmean <- ddply(na.omit(activity), ~ interval, summarise, mean = mean(steps))
+plot(intervalmean$interval, intervalmean$mean,type = "l", xlab = "Interval", main = "Mean steps per interval acrosss all days", ylab = "Mean steps")
+```
+
+
+Find the 5-minute interval, on average across all the days in the dataset, which contains the maximum number of steps
+
+```{r, echo=TRUE}
+intervalmean[which.max(intervalmean$mean),]
+```
+
+
+
+
+**Part D: Imputing missing values**
+
+
+calculate and report the total number of missing values in the dataset
+
+
+```{r, echo=TRUE}
+colSums(is.na(activity))
+```
+
+
+Devise a strategy for filling in all of the missing values in the dataset and create a new dataset that is equal to the original dataset but with the missing data filled in.The strategy used here is to use the mean of the corresponding interval.
+
+
+```{r, echo=TRUE}
+activity2 <- ddply(activity, ~ interval, transform, steps = replace(steps, is.na(steps), mean(steps, na.rm = TRUE)))
+activity2 <- activity2[order (activity2$date), ]
+```
+
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.
+
+
+```{r, echo=TRUE}
+daytotals2 <- ddply(activity2, ~ date, summarise, sum = sum(steps),mean = mean(steps), median = median(steps))
+hist(daytotals2$sum, xlab = "Total steps", main = "Total steps taken each day", ylab = "Frequency")
+daytotals2[,-2]
+```
+
+
+There is an increase in the number of steps around the mean compared to that calculated prior to imputing.
+
+
+**Part E: Are there differences in activity patterns between weekdays and weekends?**
+
+
+Create a factor variable Create a new factor variable in the dataset with two levels - "weekday" and "weekend" 
+
+
+```{r, echo=TRUE}
+activity2$weekday <- factor(weekdays(activity2$date), levels=c('Monday','Tuesday','Wednesday','Thursday','Friday', 'Saturday', 'Sunday'), labels= 1:7)
+activity2$weekday <- mapvalues(activity2$weekday, from = 1:7, to = c("weekday", "weekday","weekday","weekday","weekday", "weekend","weekend"))
+```
+
+
+Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+
+```{r, echo=TRUE}
+library(lattice)
+activity3 <- aggregate(steps ~ interval + weekday,activity2 , mean)
+xyplot(steps ~ interval | weekday, data = activity3, layout = c(1,2))
+```
+
+
